@@ -22,8 +22,8 @@ calculates normalised fluorescence values, generates KASP scatter plots, and exp
     - [ ] Which column has sample names stored + what name does that column have?
     - [ ] How are rotor positions represented? - think about how we can get R to extract how many positions have data
     - [ ] In what way are the different fluorensce spectra stored? - how can we get R to distinguish which data rows contain which colour fluorensce data
-      - [ ] How do blank positions appear in the output?
-      - [ ] Are all Rotor-Gene outputs formatted the same? - look at minor difference that could become a problem in the R script.
+    - [ ] How do blank positions appear in the output?
+    - [ ] Are all Rotor-Gene outputs formatted the same? - look at minor difference that could become a problem in the R script.
 - [ ] Write up a format_notes.md file
 
 ## Phase 3: Define the desired output the R script needs to make
