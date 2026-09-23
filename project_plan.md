@@ -100,7 +100,7 @@ calculates normalised fluorescence values, generates KASP scatter plots, and exp
 - [ ] Add download button for:
    - [ ] CSV
    - [ ] Excel
-   - [ ]plot
+   - [ ] plot
 - [ ] Reset / upload another assay button
 
 ## Phase 8: Make it easy to use for non-R users
