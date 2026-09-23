@@ -1,6 +1,6 @@
 # Formatting notes about standard Rotor-Gene output files 
 
-## Column name
+## Column names
 - Rotor positions are displayed in column A and column name is 'ID' -> input are numbers from 1 up to 72
 - Sample names are displayed in column B and column name is 'Page 1' -> input can be a number or a name
 - Fluorescence values are displayed in column C and column name is '1'
