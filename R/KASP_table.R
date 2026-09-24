@@ -1,0 +1,25 @@
+file <- "~/Tozer_Seeds_BioInformatics/KASP/data/raw/KASP_SNP06_03.09.26_recycled_V3.0_OldCeleryLines GH2.xlsx"
+raw_data <- readxl::read_excel(file, sheet = NULL, col_names = FALSE)
+green_row <- which(raw_data[[1]] == "Channel Cycling A.Green") +3
+orange_row <- which(raw_data[[1]] == "Channel Cycling A.Orange") +3
+yellow_row <- which(raw_data[[1]] == "Channel Cycling A.Yellow") +3
+
+green_end <- orange_row - 3
+orange_end <- yellow_row - 3
+yellow_end <- nrow(raw_data)
+
+green_df_raw <- raw_data[green_row:green_end,]
+colnames(green_df_raw) <- c("ID","Sample", "FAM")
+
+orange_df_raw <- raw_data[orange_row:orange_end,]
+colnames(orange_df_raw) <- c("ID","Sample", "ROX")
+
+yellow_df_raw <- raw_data[yellow_row:yellow_end,]
+colnames(yellow_df_raw) <- c("ID","Sample", "HEX")
+
+green_orange <- dplyr::left_join(green_df_raw, orange_df_raw, by= c("ID"="ID","Sample"="Sample"))
+all_colours <- dplyr::left_join(green_orange,yellow_df_raw) |>
+  na.omit() |>
+  dplyr::filter(,Sample != "BLANK")
+
+norm_table <- dplyr::mutate(all_colours,norm_HEX,) #unfinished
