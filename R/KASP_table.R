@@ -1,5 +1,5 @@
 #reading in raw data and storing it under 'file'
-file <- "~/Tozer_Seeds_BioInformatics/KASP/data/raw/KASP_SNP06_03.09.26_recycled_V3.0_OldCeleryLines GH2.xlsx" 
+file <- "~/Tozer_Seeds_BioInformatics/KASP/data/raw/KASP_Recycling_Template-290925-JP_FOA4_SNP6_extreme12-sbeadex_2025-12-01_recycling_result_1.xlsx" 
 
 #reading excel file
 raw_data <- readxl::read_excel(file, sheet = NULL, col_names = FALSE)
@@ -35,7 +35,20 @@ all_colours <- dplyr::left_join(green_orange,yellow_df_raw) |>
 #Adding columns for normalised values and calculating the normalised values. 
 norm_table <- dplyr::mutate(all_colours,norm_FAM = FAM / ROX,norm_HEX = HEX / ROX)
 
+#clustering
+cluster <- kmeans(norm_table |> dplyr::select(c(norm_HEX, norm_FAM)), centers = 4)
+norm_table2 <- norm_table
+norm_table2$cluster = cluster$cluster
+
 #creating ggplot
-plot <- ggplot2::ggplot(norm_table, mapping = ggplot2::aes(x = norm_FAM, y = norm_HEX)) +
+plot <- ggplot2::ggplot(norm_table2, mapping = ggplot2::aes(x = norm_FAM, y = norm_HEX)) +
   ggplot2::geom_point() +
+  ggrepel::geom_label_repel(ggplot2::aes(label = Sample, fill = Sample), size = 2.5,
+                            max.overlaps = 20,
+                            box.padding = 0.35,
+                            point.padding = 0.025,
+                            segment.colour = 'grey50',
+                            segment.size = 0.2,
+                            alpha = 0.8) +
+  ggforce::geom_mark_ellipse(ggplot2::aes(fill = factor(cluster))) +
   ggplot2::theme_classic()
