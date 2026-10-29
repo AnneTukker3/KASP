@@ -36,7 +36,15 @@ ui <- dashboardPage(
                   inputId = "analyse",
                   label = "Run analysis",
                   icon = icon("play"))
-                )
+                ),
+              box(
+                title = "Messages",
+                width = 6,
+                solidHeader = TRUE,
+                status = "warning",
+                
+                uiOutput("messages")
+              )
               ),
       tabItem(tabName = "clusters",
               h1("View the scatterplot here"),
@@ -118,21 +126,148 @@ server <- function(input, output, session){
   plot_result <- reactiveVal(NULL)
   table_result <- reactiveVal(NULL)
   
+  # Store messages displayed to the user
+  message_text <- reactiveVal(
+    "Please upload a Rotor-Gene Q Excel file to begin."
+  )
+  
+  message_type <- reactiveVal("info")
+  
+  # Display messages on dashboard
+  output$messages <- renderUI({
+    
+    colour <- switch(
+      message_type(),
+      "error" = "red",
+      "success" = "green",
+      "warning" = "orange",
+      "info" = "#555555"
+    )
+    
+    div(
+      style = paste0(
+        "color: ", colour,
+        "; font-weight: bold; padding: 10px;"
+      ),
+      message_text()
+    )
+  })
+  
 #-----------------------
   #run the KASP analysis
 #-----------------------
+  # Check uploaded file type
+  observeEvent(input$file, {
+    
+    # Get the original uploaded filename
+    filename <- input$file$name
+    
+    # Get the file extension
+    extension <- tolower(tools::file_ext(filename))
+    
+    # Check whether the extension is supported
+    if (!extension %in% c("xls", "xlsx")) {
+      
+      message_text(
+        "Unsupported file, please upload an .xls or .xlsx file."
+      )
+      
+      message_type("error")
+      
+      showNotification(
+        "Unsupported file, please upload an .xls or .xlsx file.",
+        type = "error",
+        duration = 8
+      )
+      
+    } else {
+      
+      message_text(
+        paste("File uploaded:", filename,
+              "- Click Run analysis to continue.")
+      )
+      
+      message_type("info")
+    }
+  })
   
   #code to run when file is uploaded:
   observeEvent(input$analyse, {
-    # Store the uploaded file path in an object called 'file'
+    
+    # Check whether a file has been uploaded
+    if (is.null(input$file)) {
+      
+      message_text(
+        "Please upload an Excel file before running the analysis."
+      )
+      
+      message_type("warning")
+      
+      return()
+    }
+    
+    # Check the file extension
+    filename <- input$file$name
+    extension <- tolower(tools::file_ext(filename))
+    
+    if (!extension %in% c("xls", "xlsx")) {
+      
+      message_text(
+        "Unsupported file, please upload an .xls or .xlsx file."
+      )
+      
+      message_type("error")
+      
+      return()
+    }
+    
+    # Get the uploaded file path
     file <- input$file$datapath
     
-    # Read Excel file
-    raw_data <- readxl::read_excel(
-      file,
-      sheet = NULL,
-      col_names = FALSE
-    )
+    # Clear previous results
+    plot_result(NULL)
+    table_result(NULL)
+    
+    message_text("Analysis in progress...")
+    message_type("info")
+    
+    # Catch errors without crashing the dashboard
+    tryCatch({
+      
+      # Read Excel file
+      raw_data <- readxl::read_excel(
+        file,
+        sheet = NULL,
+        col_names = FALSE
+      )
+      
+      # Check that required fluorescence channels exist
+      required_channels <- c(
+        "Channel Cycling A.Green",
+        "Channel Cycling A.Orange",
+        "Channel Cycling A.Yellow"
+      )
+      
+      # Get channel names from first column
+      found_channels <- as.character(raw_data[[1]])
+      
+      # Identify missing channels
+      missing_channels <- setdiff(
+        required_channels,
+        found_channels
+      )
+      
+      # Stop analysis if channels are missing
+      if (length(missing_channels) > 0) {
+        
+        stop(
+          paste(
+            "Missing fluorescence channels:",
+            paste(missing_channels, collapse = ", ")
+          )
+        )
+      }
+      
     #calculating the start row of every fluorensence colour
     green_row <- which(raw_data[[1]] == "Channel Cycling A.Green") +3
     orange_row <- which(raw_data[[1]] == "Channel Cycling A.Orange") +3
@@ -172,7 +307,7 @@ server <- function(input, output, session){
     #creating ggplot
     plot <- ggplot2::ggplot(norm_table2, mapping = ggplot2::aes(x = norm_FAM, y = norm_HEX)) +
       ggplot2::geom_point() +
-      ggrepel::geom_label_repel(ggplot2::aes(label = Sample, fill = Sample), size = 2.5,
+      ggrepel::geom_label_repel(ggplot2::aes(label = Sample), size = 2.5,
                                 max.overlaps = 20,
                                 box.padding = 0.35,
                                 point.padding = 0.025,
@@ -185,6 +320,47 @@ server <- function(input, output, session){
     # Save results for use elsewhere in Shiny
     plot_result(plot)
     table_result(norm_table)
+    
+    # Display successful analysis message
+    message_text(
+      paste0(
+        "Analysis of ", filename,
+        " is completed. Please view the results ",
+        "in the Cluster plot or Results page."
+      )
+    )
+    
+    message_type("success")
+    
+    # Catch errors during analysis
+    }, error = function(e) {
+      
+      # Prevent unsuccessful analyses from leaving old results
+      plot_result(NULL)
+      table_result(NULL)
+      
+      # Display a helpful message
+      message_text(
+        paste0(
+          "Unable to analyse ", filename,
+          ". Please check that this is a valid ",
+          "Rotor-Gene Q Excel file."
+        )
+      )
+      
+      message_type("error")
+      
+      showNotification(
+        "The analysis could not be completed. Please check your file.",
+        type = "error",
+        duration = 10
+      )
+      
+      # Record the error in the R console for debugging
+      message("KASP analysis error: ", conditionMessage(e))
+      
+    })
+    
   })
   
   # Display scatter plot
@@ -275,7 +451,7 @@ server <- function(input, output, session){
     
     content = function(file) {
       
-      rew(plot_result())
+      req(plot_result())
       
       write.csv(
         x = table_result(),

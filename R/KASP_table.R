@@ -28,7 +28,7 @@ colnames(yellow_df_raw) <- c("ID","Sample", "HEX")
 green_orange <- dplyr::left_join(green_df_raw, orange_df_raw, by= c("ID"="ID","Sample"="Sample")) #it triplicates the n/a rows?
 
 #joining HEX to FAM/ROX table
-all_colours <- dplyr::left_join(green_orange,yellow_df_raw) |>
+all_colours <- dplyr::left_join(green_orange,yellow_df_plotraw) |>
   na.omit() |> #removing N/A rows
   dplyr::filter(,Sample != "BLANK") #removing blank readings
 
@@ -43,7 +43,7 @@ norm_table2$cluster = cluster$cluster
 #creating ggplot
 plot <- ggplot2::ggplot(norm_table2, mapping = ggplot2::aes(x = norm_FAM, y = norm_HEX)) +
   ggplot2::geom_point() +
-  ggrepel::geom_label_repel(ggplot2::aes(label = Sample, fill = Sample), size = 2.5,
+  ggrepel::geom_label_repel(ggplot2::aes(label = Sample), size = 2.5,
                             max.overlaps = 20,
                             box.padding = 0.35,
                             point.padding = 0.025,
