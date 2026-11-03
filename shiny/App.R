@@ -85,7 +85,6 @@ ui <- dashboardPage(
                 plotOutput(
                   outputId = "scatter_plot",
                   width = "100%",
-                  res = 96,
                   height = "600px")
                  ),
               box(
