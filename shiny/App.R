@@ -15,6 +15,32 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
+      # Allow the dashboard page to extend vertically and scroll
+  tags$head(
+    tags$style(HTML("
+      html, body {
+        height: auto !important;
+        min-height: 100% !important;
+        overflow-y: auto !important;
+      }
+
+      .wrapper {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
+      }
+
+      .content-wrapper {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
+      }
+
+      .content, .tab-content {
+        overflow: visible !important;
+      }
+    "))
+  ),
     tabItems(
       #dashboard tab content
       tabItem(tabName = "dashboard",
@@ -376,7 +402,17 @@ server <- function(input, output, session){
     
     req(table_result()) #no table is displayed before the analysis is run
     
-    DT::datatable(table_result()) #retrieves the stored table
+    DT::datatable(
+        table_result(), #retrieves the stored table
+  options = list(
+    pageLength = 10,                 # Show 10 rows initially
+    lengthMenu = c(10, 25, 50, 100), # Let users choose how many rows to show
+    scrollX = TRUE,                  # Allow horizontal scrolling if needed
+    scrollY = "500px",               # Add internal vertical scrolling
+    scrollCollapse = TRUE,           # Shrink table height if there are fewer rows
+    autoWidth = TRUE                 # Automatically size columns
+  )
+    )
   })
   
   # Download scatter plot as PNG
