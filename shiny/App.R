@@ -82,6 +82,17 @@ ui <- dashboardPage(
                 solidHeader = TRUE,
                 status = "warning",
                 
+                # Select whether to display clustering
+                selectInput(
+                  inputId = "plot_view",
+                  label = "Plot view:",
+                  choices = c(
+                    "With clustering" = "cluster",
+                    "Without clustering" = "no_cluster"
+                  ),
+                  selected = "cluster" #make the default plot with cluster
+                ),
+                
                 plotOutput(
                   outputId = "scatter_plot",
                   width = "100%",
@@ -151,6 +162,7 @@ server <- function(input, output, session){
   
   # Store results from the analysis
   plot_result <- reactiveVal(NULL)
+  plot_no_cluster <- reactiveVal(NULL)
   table_result <- reactiveVal(NULL)
   
   # Store messages displayed to the user
@@ -253,6 +265,7 @@ server <- function(input, output, session){
     
     # Clear previous results
     plot_result(NULL)
+    plot_no_cluster(NULL)
     table_result(NULL)
     
     message_text("Analysis in progress...")
@@ -331,8 +344,8 @@ server <- function(input, output, session){
     norm_table2 <- norm_table
     norm_table2$cluster = cluster$cluster
     
-    #creating ggplot
-    plot <- ggplot2::ggplot(norm_table2, mapping = ggplot2::aes(x = norm_FAM, y = norm_HEX)) +
+    #creating base ggplot
+    plot_base <- ggplot2::ggplot(norm_table2, mapping = ggplot2::aes(x = norm_FAM, y = norm_HEX)) +
       ggplot2::geom_point() +
       ggrepel::geom_label_repel(ggplot2::aes(label = Sample), size = 2.5,
                                 max.overlaps = 20,
@@ -341,11 +354,16 @@ server <- function(input, output, session){
                                 segment.colour = 'grey50',
                                 segment.size = 0.2,
                                 alpha = 0.8) +
-      ggforce::geom_mark_ellipse(ggplot2::aes(fill = factor(cluster))) +
       ggplot2::theme_classic()
     
+    #creating plot with cluster
+    plot_cluster <- plot_base +
+      ggforce::geom_mark_ellipse(ggplot2::aes(fill = factor(cluster))) +
+      ggplot2::theme(legend.position = "none") #don't show a legend
+    
     # Save results for use elsewhere in Shiny
-    plot_result(plot)
+    plot_result(plot_cluster)
+    plot_no_cluster(plot_base)
     table_result(norm_table)
     
     # Display successful analysis message
@@ -364,6 +382,7 @@ server <- function(input, output, session){
       
       # Prevent unsuccessful analyses from leaving old results
       plot_result(NULL)
+      plot_no_cluster(NULL)
       table_result(NULL)
       
       # Display a helpful message
@@ -390,12 +409,26 @@ server <- function(input, output, session){
     
   })
   
+  #select scatter plot view
+  selected_plot <- reactive({
+    
+    if (input$plot_view == "cluster") {
+      req(plot_result())
+      plot_result()
+      
+    } else {
+      req(plot_no_cluster())
+      plot_no_cluster()
+    }
+    
+  })
+  
   # Display scatter plot
   output$scatter_plot <- renderPlot({ #output is displayed as a plot
     
-    req(plot_result()) #no plot is displayed before the analysis is run
+    req(selected_plot()) #no plot is displayed before the analysis is run
     
-    plot_result() #retrieving the stored ggplot output
+    selected_plot() #retrieving the selected plot
   })
   
   # Display results table
@@ -421,12 +454,12 @@ server <- function(input, output, session){
     
     #creating the dynamic file name with the date of the download:
     filename = function() {
-      paste0("KASP_scatter_plot_", format(Sys.Date(), "%d-%m-%Y"), ".png")
+      paste0("KASP_scatter_plot_", input$plot_view, format(Sys.Date(), "%d-%m-%Y"), ".png")
     },
     
     content = function(file) { #content tells shiny how to generate the file
       
-      req(plot_result()) #requires analysis to be run
+      req(selected_plot()) #requires analysis to be run
       
       ggplot2::ggsave( 
         filename = file,
@@ -444,12 +477,12 @@ server <- function(input, output, session){
     
     #creating the dynamic file name with the date of the download:
     filename = function() {
-      paste0("KASP_scatter_plot_", format(Sys.Date(), "%d-%m-%Y"), ".pdf")
+      paste0("KASP_scatter_plot_", input$plot_view, format(Sys.Date(), "%d-%m-%Y"), ".pdf")
     },
     
     content = function(file) { #content tells shiny how to generate the file
       
-      req(plot_result())
+      req(selected_plot())
       
       ggplot2::ggsave(
         filename = file,
