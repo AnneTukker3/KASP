@@ -28,7 +28,7 @@ colnames(yellow_df_raw) <- c("ID","Sample", "HEX")
 green_orange <- dplyr::left_join(green_df_raw, orange_df_raw, by= c("ID"="ID","Sample"="Sample")) #it triplicates the n/a rows?
 
 #joining HEX to FAM/ROX table
-all_colours <- dplyr::left_join(green_orange,yellow_df_plotraw) |>
+all_colours <- dplyr::left_join(green_orange,yellow_df_raw) |>
   na.omit() |> #removing N/A rows
   dplyr::filter(,Sample != "BLANK") #removing blank readings
 

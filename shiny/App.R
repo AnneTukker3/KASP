@@ -96,7 +96,7 @@ ui <- dashboardPage(
                 plotOutput(
                   outputId = "scatter_plot",
                   width = "100%",
-                  height = "600px")
+                  height = "500px")
                  ),
               box(
                 title = "Download scatter plot",
