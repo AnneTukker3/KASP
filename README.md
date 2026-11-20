@@ -17,10 +17,10 @@ There are two ways to run the KASP analysis tool:
 2. R/shiny installation: for users who want to run/modify the application directly from its code source.
 
 ### Windows executable 
-A windows executable file (.exe) is available in the Windows download folder to make the application accessible for users without any R experience.
+A windows executable file (.exe) is available on the releases page to make the application accessible for users without any R experience.
 
 **installation instructions:**
-1. Navigate to the "Windows download" folder in the GitHub repository.
+1. Navigate to the releases page.
 2. Download the KASP-analysis_setup.exe file.
 3. Follow the downloading instructions.
 4. OPTIONAL: Add a desktop shortcut for easy access to the application.
