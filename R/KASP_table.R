@@ -1,5 +1,5 @@
 #reading in raw data and storing it under 'file'
-file <- "~/Tozer_Seeds_BioInformatics/KASP/data/raw/KASP_Recycling_Template-290925-JP_FOA4_SNP6_extreme12-sbeadex_2025-12-01_recycling_result_1.xlsx" 
+file <- "define file path here" 
 
 #reading excel file
 raw_data <- readxl::read_excel(file, sheet = NULL, col_names = FALSE)
