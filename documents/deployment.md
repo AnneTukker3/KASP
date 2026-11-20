@@ -5,8 +5,8 @@
 - Create a desktop shortcut that launches the application without the user needing to interact with R
 
 ## Option 2: Locally using a shiny desktop project
-- There are shiny packaging project available for windows
-- derryleng has a template GitHub repo.
+- Using the template repository: https://github.com/derryleng/Shiny_Desktop_App
+- Create an executable file for windows that downloads the app locally -> all processing happens on the local machine.
 
 ## Option 3: Hosting an internal website 
 - Using the existing network
